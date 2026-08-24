@@ -183,4 +183,4 @@ python -m unittest test_core -v
 
 ## Approach write-up
 
-See [`WRITEUP.md`](WRITEUP.md) for the ~200-word summary for the submission form.
+See [`WRITEUP.md`]([WRITEUP.md](https://github.com/anushkaaa26/VocaCart/blob/main/documentation.md)) for the ~200-word summary for the submission form.
