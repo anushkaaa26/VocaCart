@@ -14,6 +14,7 @@
 **[Live demo →]([#](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/)) &nbsp;·&nbsp; [Setup](#setup) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Feature checklist](#feature-checklist) &nbsp;·&nbsp; [Testing](#testing)**
 
 *[Live](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/)*
+*[Document](https://github.com/anushkaaa26/VocaCart/blob/main/documentation.md)*
 
 </div>
 
