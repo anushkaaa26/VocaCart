@@ -11,9 +11,9 @@
 ![Voice](https://img.shields.io/badge/voice-Groq%20Whisper-14151A?style=flat-square&logoColor=C9A227)
 ![License](https://img.shields.io/badge/status-assessment%20build-14151A?style=flat-square&logoColor=C9A227)
 
-**[Live demo →](#) &nbsp;·&nbsp; [Setup](#setup) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Feature checklist](#feature-checklist) &nbsp;·&nbsp; [Testing](#testing)**
+**[Live demo →]([#](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/)) &nbsp;·&nbsp; [Setup](#setup) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Feature checklist](#feature-checklist) &nbsp;·&nbsp; [Testing](#testing)**
 
-*(swap the live demo link once deployed — see [Deploying](#deploying))*
+*([Live](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/))*
 
 </div>
 
@@ -53,7 +53,7 @@ Mapped against the original assessment brief:
 | Minimalist, visual-feedback UI | ✅ | Live transcript, spoken + written replies, real-time ledger |
 | Loading states | ✅ | Distinct states for transcribing vs. thinking |
 | Basic error handling | ✅ | Every voice/LLM call degrades gracefully with a plain-English message |
-| Hosting | 🔲 | Deploy to Streamlit Community Cloud — see [Deploying](#deploying) |
+| Hosting | 🔲 | Deploy to Streamlit Community Cloud — see [Deployed](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/) |
 
 ## Architecture
 
