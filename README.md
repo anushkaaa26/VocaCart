@@ -53,7 +53,7 @@ Mapped against the original assessment brief:
 | Minimalist, visual-feedback UI | ✅ | Live transcript, spoken + written replies, real-time ledger |
 | Loading states | ✅ | Distinct states for transcribing vs. thinking |
 | Basic error handling | ✅ | Every voice/LLM call degrades gracefully with a plain-English message |
-| Hosting | 🔲 | Deploy to Streamlit Community Cloud — see [Deployed](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/) |
+| Hosting | ✅ | Deploy to Streamlit Community Cloud — see [Deployed](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/) |
 
 ## Architecture
 
