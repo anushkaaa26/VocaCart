@@ -1,7 +1,7 @@
 # 🛒 VocaCart — Voice-First AI Shopping Agent
 
 VocaCart is an assessment-ready evolution of the original `shopping-agent` project. It keeps the existing SQLite product catalog, ratings and order ledger, then adds a voice-first conversational shopping layer.
-
+https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/
 ## Standout features
 
 - 🎙️ **Voice-first commands** using Streamlit microphone capture + speech recognition.
