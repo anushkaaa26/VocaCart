@@ -1,42 +1,186 @@
-# 🛒 VocaCart — Voice Command Shopping Assistant
+<div align="center">
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/)
-![Python Version](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Live%20Production-success)
-![UI/UX](https://img.shields.io/badge/Interface-Minimalist%20%26%20Responsive-purple)
+# 🛒 VocaCart
+### Voice concierge for your pantry
 
-> **Live Demo:** 🚀 [Experience VocaCart Live on Streamlit Cloud](https://vocacart-cuvuknlmtqj4usxmcpqz9b.streamlit.app/)
+*Speak naturally. VocaCart adds it, remembers it, and watches your budget for you.*
 
-**VocaCart** is an intelligent, voice-activated shopping management system designed for friction-free inventory control, hands-free product discovery, and automated budget optimization. Built using Python, Streamlit, and modern browser speech recognition APIs, VocaCart parses continuous audio input into structured transactional data in real time.
+![Python](https://img.shields.io/badge/Python-3.10+-14151A?style=flat-square&logo=python&logoColor=C9A227)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.44-14151A?style=flat-square&logo=streamlit&logoColor=C9A227)
+![Tests](https://img.shields.io/badge/tests-8%20passing-14151A?style=flat-square&logo=pytest&logoColor=C9A227)
+![Voice](https://img.shields.io/badge/voice-Groq%20Whisper-14151A?style=flat-square&logoColor=C9A227)
+![License](https://img.shields.io/badge/status-assessment%20build-14151A?style=flat-square&logoColor=C9A227)
 
----
+**[Live demo →](#) &nbsp;·&nbsp; [Setup](#setup) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Feature checklist](#feature-checklist) &nbsp;·&nbsp; [Testing](#testing)**
 
-## 🌟 Key Features
+*(swap the live demo link once deployed — see [Deploying](#deploying))*
 
-| Feature | Capabilities | Implementation |
-| :--- | :--- | :--- |
-| **🎙️ Voice Recognition** | Multi-phrase intent detection, Hands-free cart control | Web Speech API & JavaScript SpeechRecognition wrapper |
-| **🌐 Multilingual Support** | Accent-tolerant voice parsing across English, Spanish, French, German | Dynamic speech locale parameters (`en-US`, `es-ES`, `fr-FR`, `de-DE`) |
-| **🤖 Smart Recommendations** | Automated dietary substitutions (e.g., Oat Milk for Milk), seasonal suggestions, stock alerts | Rule-based decision heuristics & preference matrix |
-| **🏷️ Automated Taxonomy** | Instant auto-categorization (Dairy, Produce, Snacks, Household) | Fuzzy keyword pattern matching & NLP categorization |
-| **💰 Budget & Price Filter** | Real-time expense computation, voice-based range filtering (*"find items under $10"*) | Defensive regex entity extraction & status calculators |
-| **📦 Order Lifecycle** | Full multi-page experience: Catalog ➔ Cart ➔ Checkout ➔ Receipts | Session-state state engine with defensive error handling |
+</div>
 
 ---
 
-## 🏗️ Architecture & Data Flow
+## What this is
 
-```text
-[ User Voice Input ] 
-       │
-       ▼
-[ Web Speech API (Client STT) ]
-       │
-       ▼
-[ NLP & Intent Parsing Engine ] ──► (Action: Add / Remove / Filter / Search)
-       │
-       ▼
-[ State Manager & Budget Calculator ] ──► (Categorization, Substitutions, Status)
-       │
-       ▼
-[ Reactive Streamlit UI Engine ] ──► (Catalog | Cart | Checkout | Order History)
+VocaCart is a voice-first shopping list assistant. You talk to it the way
+you'd talk to someone doing the shopping for you — "add two bottles of
+milk," "actually make that three," "keep my budget under a hundred dollars,"
+"2 litre doodh aur 5 kele add karo" — and it updates a real SQLite-backed
+list, tracks a running budget, and learns what you tend to reorder.
+
+It isn't a chatbot wrapped around a to-do list. Every command runs through a
+**deterministic parser first** (fast, free, works with zero API calls) with
+an **LLM fallback** for phrasing the parser doesn't recognize — so the app
+is fully functional offline-of-Groq, and gets more flexible when a
+`GROQ_API_KEY` is configured.
+
+## Feature checklist
+
+Mapped against the original assessment brief:
+
+| Requirement | Status | Notes |
+|---|:---:|---|
+| Voice command recognition | ✅ | Browser mic (`st.audio_input`) → transcription pipeline below |
+| Natural language flexibility | ✅ | Rule-based parser handles varied phrasing; LLM fallback for the rest |
+| Multilingual voice input | ✅ | English · Hindi · **Hinglish** (code-mixed) — see [`voice.py`](voice.py) |
+| Product recommendations | ✅ | `shopping_memory()` flags items you're statistically "due" to reorder |
+| Seasonal recommendations | ✅ | `smart_basket()` blends memory + seasonal picks with a stated reason |
+| Substitutes | ✅ | `cheaper_substitutes()` — same-category alternatives, cheapest first |
+| Add / remove / modify items | ✅ | Including natural corrections: *"actually make that 3"* |
+| Auto-categorization | ✅ | Every catalog product carries a category, applied on add |
+| Quantity by voice | ✅ | Units parsed too — *"2 bottles of water"*, *"5 kele"* |
+| Voice search incl. price range | ✅ | *"find toothpaste under $5"*, rating filters (*"4+ stars"*) |
+| Budget tracking | ✅ | **Budget Guardian** — live basket total vs. a spoken budget limit |
+| Minimalist, visual-feedback UI | ✅ | Live transcript, spoken + written replies, real-time ledger |
+| Loading states | ✅ | Distinct states for transcribing vs. thinking |
+| Basic error handling | ✅ | Every voice/LLM call degrades gracefully with a plain-English message |
+| Hosting | 🔲 | Deploy to Streamlit Community Cloud — see [Deploying](#deploying) |
+
+## Architecture
+
+```
+                    🎙️  Voice (st.audio_input)
+                            │
+                            ▼
+              ┌── voice.py — transcription ──┐
+              │  1. Groq Whisper (primary)    │
+              │  2. Google/SpeechRecognition  │  ← free fallback, no key needed
+              │     (fallback)                │
+              └────────────┬───────────────────┘
+                            │  transcript text
+                            ▼
+              ┌── shopping_agent.py ──────────┐
+              │  1. deterministic rule parser  │  ← fast, free, always available
+              │  2. LLM fallback (Groq)        │  ← only if the rules miss
+              └────────────┬───────────────────┘
+                            │  {intent, items, filters}
+                            ▼
+              ┌── database.py ─────────────────┐
+              │  shopping_list · purchase_history│
+              │  products · reviews · settings   │
+              └────────────┬───────────────────┘
+                            │
+              ┌─────────────┼──────────────────┐
+              ▼              ▼                  ▼
+      recommendations.py  budget.py        reviews_api.py
+      (memory, seasonal,  (Budget          (rating
+       substitutes,        Guardian)        aggregation)
+       smart basket)
+                            │
+                            ▼
+                    app.py — Streamlit UI
+              (voice console · ledger · tabs)
+```
+
+Nothing here is faked for the demo: the parser is real regex/heuristics you
+can read in `shopping_agent.py`, the recommendation logic runs real SQL
+aggregation over `purchase_history` in `recommendations.py`, and the budget
+math is a real running total from the live shopping list, not a mock number.
+
+## Tech stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| UI | Streamlit | Fast to build a stateful, reactive interface in pure Python |
+| Voice capture | `st.audio_input` | Native browser mic capture, no extra JS |
+| Transcription | Groq-hosted Whisper (`whisper-large-v3`), with `SpeechRecognition`'s free Google recognizer as fallback | Whisper is materially more accurate on Hindi/Hinglish; the fallback keeps voice input working with zero setup |
+| Intent parsing | Custom rule-based parser + `langchain-groq` LLM fallback | Deterministic path is instant and free; LLM only engages for phrasing the rules don't cover |
+| Data | SQLite (`store.db`) | Zero-config, portable, easy to inspect and reset |
+| Styling | Hand-written CSS injected via `st.markdown` | A voice console and a receipt ledger aren't native Streamlit components |
+
+## Project structure
+
+```
+.
+├── app.py                    # Streamlit UI — voice console, ledger, budget panel, tabs
+├── shopping_agent.py         # Command parsing (rules + LLM fallback) and response rendering
+├── voice.py                  # Audio transcription: Groq Whisper → free-recognizer fallback
+├── database.py                # SQLite schema, shopping list, settings, purchase history
+├── recommendations.py        # Shopping memory, seasonal picks, substitutes, smart basket
+├── budget.py                  # Budget Guardian helpers
+├── reviews_api.py             # Rating aggregation (AVG/COUNT over reviews)
+├── setup_db.py                 # Schema + seed catalog, idempotent
+├── test_core.py                # Unit tests (parser) + integration tests (full pipeline)
+├── requirements.txt
+└── .streamlit/
+    ├── config.toml            # App theme
+    └── secrets.toml.example   # Copy to secrets.toml and add your GROQ_API_KEY
+```
+
+## Setup
+
+```bash
+git clone <your-repo-url>
+cd vocacart
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+# then edit .streamlit/secrets.toml and add your free key from console.groq.com
+
+python setup_db.py               # creates/migrates store.db — safe to re-run
+streamlit run app.py
+```
+
+The app runs and is fully usable **without** a `GROQ_API_KEY` — the
+deterministic parser and the free transcription fallback both work with zero
+configuration. The key unlocks the more accurate Whisper transcription and
+the LLM fallback for phrasing the rule parser doesn't recognize.
+
+Voice input needs mic access, which browsers only grant on `https://` or
+`localhost` — both are covered automatically (local dev, and Streamlit
+Community Cloud serves over HTTPS by default).
+
+## Deploying
+
+**Streamlit Community Cloud** (free, and what this stack is built for):
+
+1. Push this repo to GitHub.
+2. [share.streamlit.io](https://share.streamlit.io) → New app → point at this repo, branch `main`, file `app.py`.
+3. Under **Advanced settings → Secrets**, paste the contents of your local `secrets.toml`:
+   ```toml
+   GROQ_API_KEY = "your_key_here"
+   GROQ_MODEL = "qwen/qwen3-32b"
+   ```
+4. Deploy, then replace the placeholder link at the top of this README with the live URL.
+
+## Testing
+
+```bash
+python -m unittest test_core -v
+```
+
+8 tests, two layers:
+- **Parser unit tests** — multi-item adds, quantity corrections, budget commands, price/rating search filters, Hinglish parsing.
+- **Integration tests** — run `execute_command` end-to-end against the real database (add → remove round trip, rated search results, unknown-command handling), since that's where a change is most likely to break something a parser-only test wouldn't catch.
+
+## Known limitations
+
+- The free transcription fallback (unofficial Google Web Speech endpoint) is rate-limited and weaker on Hindi — configure `GROQ_API_KEY` for a materially better experience.
+- Seasonal recommendations use a fixed calendar mapping rather than real sales/weather data.
+- "Due for reorder" uses purchase-history intervals per item rather than a learned per-user model.
+- Single-session app — the shopping list isn't scoped per user account.
+
+## Approach write-up
+
+See [`WRITEUP.md`](WRITEUP.md) for the ~200-word summary for the submission form.
